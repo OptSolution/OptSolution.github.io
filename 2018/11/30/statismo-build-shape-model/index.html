@@ -375,8 +375,7 @@
 
   
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.9.0/dist/katex.min.css">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
 </div>
     </header>
 
@@ -553,7 +552,7 @@ If you call Update() on filter3, ITK starts from filter3 and checks if the input
 <hr>
 <h2 id="进行pca并保存model"><a class="markdownIt-Anchor" href="#进行pca并保存model"></a> 进行PCA并保存model</h2>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// model类型</span></span><br><span class="line"><span class="keyword">typedef</span> itk::StatisticalModel&lt;MeshType&gt; StatisticalModelType;</span><br><span class="line">StatisticalModelType::Pointer model;</span><br><span class="line"><span class="comment">// 利用itk接口进行PCA</span></span><br><span class="line"><span class="keyword">typedef</span> itk::PCAModelBuilder&lt;MeshType&gt; PCAModelBuilder;</span><br><span class="line">PCAModelBuilder::Pointer pcaModelBuilder = PCAModelBuilder::New();</span><br><span class="line"><span class="comment">// 直接就进行PCA了</span></span><br><span class="line">model = pcaModelBuilder-&gt;BuildNewModel(dataManager-&gt;GetData(),</span><br><span class="line">                                         opt.fNoiseVariance);</span><br><span class="line"><span class="comment">// 保存为文件</span></span><br><span class="line">itk::StatismoIO&lt;MeshType&gt;::SaveStatisticalModel(</span><br><span class="line">    model, opt.strOutputFileName.c_str());</span><br></pre></td></tr></table></figure>
-<script src="https://cdn.bootcss.com/raphael/2.2.7/raphael.min.js"></script><script src="https://cdn.bootcss.com/flowchart/1.7.0/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
+<script src="https://cdnjs.loli.net/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
 ed=>end: 退出
 io1=>inputoutput: 输入命令行参数
 op1=>operation: 读取命令行参数
