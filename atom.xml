@@ -5,9 +5,9 @@
   
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://yoursite.com/"/>
+  <link href="https://optsolution.github.io/"/>
   <updated>2018-11-30T13:13:19.871Z</updated>
-  <id>http://yoursite.com/</id>
+  <id>https://optsolution.github.io/</id>
   
   <author>
     <name>OptSolution</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>statismo代码分析--statismo-build-shape-model</title>
-    <link href="http://yoursite.com/2018/11/30/statismo-build-shape-model/"/>
-    <id>http://yoursite.com/2018/11/30/statismo-build-shape-model/</id>
+    <link href="https://optsolution.github.io/2018/11/30/statismo-build-shape-model/"/>
+    <id>https://optsolution.github.io/2018/11/30/statismo-build-shape-model/</id>
     <published>2018-11-30T11:33:11.000Z</published>
     <updated>2018-11-30T13:13:19.871Z</updated>
     
@@ -33,18 +33,18 @@
     </summary>
     
     
-      <category term="statismo" scheme="http://yoursite.com/tags/statismo/"/>
+      <category term="statismo" scheme="https://optsolution.github.io/tags/statismo/"/>
     
-      <category term="code" scheme="http://yoursite.com/tags/code/"/>
+      <category term="code" scheme="https://optsolution.github.io/tags/code/"/>
     
-      <category term="SSM" scheme="http://yoursite.com/tags/SSM/"/>
+      <category term="SSM" scheme="https://optsolution.github.io/tags/SSM/"/>
     
   </entry>
   
   <entry>
     <title>Bundle Adjustment简述</title>
-    <link href="http://yoursite.com/2018/11/29/BA/"/>
-    <id>http://yoursite.com/2018/11/29/BA/</id>
+    <link href="https://optsolution.github.io/2018/11/29/BA/"/>
+    <id>https://optsolution.github.io/2018/11/29/BA/</id>
     <published>2018-11-29T04:22:33.000Z</published>
     <updated>2018-11-30T11:52:23.142Z</updated>
     
@@ -58,14 +58,14 @@
     </summary>
     
     
-      <category term="BA" scheme="http://yoursite.com/tags/BA/"/>
+      <category term="BA" scheme="https://optsolution.github.io/tags/BA/"/>
     
   </entry>
   
   <entry>
     <title>四元数及error-state kalman</title>
-    <link href="http://yoursite.com/2018/11/28/Quaternion-kinematics/"/>
-    <id>http://yoursite.com/2018/11/28/Quaternion-kinematics/</id>
+    <link href="https://optsolution.github.io/2018/11/28/Quaternion-kinematics/"/>
+    <id>https://optsolution.github.io/2018/11/28/Quaternion-kinematics/</id>
     <published>2018-11-28T12:28:24.000Z</published>
     <updated>2018-11-30T11:52:12.167Z</updated>
     
@@ -78,18 +78,18 @@
     </summary>
     
     
-      <category term="math" scheme="http://yoursite.com/tags/math/"/>
+      <category term="math" scheme="https://optsolution.github.io/tags/math/"/>
     
-      <category term="vio" scheme="http://yoursite.com/tags/vio/"/>
+      <category term="vio" scheme="https://optsolution.github.io/tags/vio/"/>
     
-      <category term="slam" scheme="http://yoursite.com/tags/slam/"/>
+      <category term="slam" scheme="https://optsolution.github.io/tags/slam/"/>
     
   </entry>
   
   <entry>
     <title>MSCKF相关问题推导</title>
-    <link href="http://yoursite.com/2018/11/28/msckf/"/>
-    <id>http://yoursite.com/2018/11/28/msckf/</id>
+    <link href="https://optsolution.github.io/2018/11/28/msckf/"/>
+    <id>https://optsolution.github.io/2018/11/28/msckf/</id>
     <published>2018-11-28T11:31:21.000Z</published>
     <updated>2018-11-30T11:52:17.250Z</updated>
     
@@ -102,9 +102,9 @@
     </summary>
     
     
-      <category term="vio" scheme="http://yoursite.com/tags/vio/"/>
+      <category term="vio" scheme="https://optsolution.github.io/tags/vio/"/>
     
-      <category term="slam" scheme="http://yoursite.com/tags/slam/"/>
+      <category term="slam" scheme="https://optsolution.github.io/tags/slam/"/>
     
   </entry>
   
