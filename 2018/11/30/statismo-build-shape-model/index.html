@@ -156,7 +156,7 @@
 <meta property="og:site_name" content="HyperPlane">
 <meta property="og:description" content="statismo中statismo-build-shape-model程序代码的解读 总结一下就是：给出参考帧（因为PCA需要先中心化）之后PCA">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-11-30T13:13:19.871Z">
+<meta property="og:updated_time" content="2018-12-02T11:00:44.357Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="statismo代码分析--statismo-build-shape-model">
 <meta name="twitter:description" content="statismo中statismo-build-shape-model程序代码的解读 总结一下就是：给出参考帧（因为PCA需要先中心化）之后PCA">
@@ -447,12 +447,24 @@
                 
               
 
-              <time title="创建时间：2018-11-30 19:33:11 / 修改时间：21:13:19" itemprop="dateCreated datePublished" datetime="2018-11-30T19:33:11+08:00">2018-11-30</time>
+              <time title="创建时间：2018-11-30 19:33:11" itemprop="dateCreated datePublished" datetime="2018-11-30T19:33:11+08:00">2018-11-30</time>
             
 
             
               
 
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-12-02 19:00:44" itemprop="dateModified" datetime="2018-12-02T19:00:44+08:00">2018-12-02</time>
               
             
           </span>
@@ -526,6 +538,7 @@ input --&gt; |filter1| --&gt; |filter2| --&gt; |filter3| --&gt; output<br>
 If you call Update() on filter3, ITK starts from filter3 and checks if the input(s) to each filter have changed. If they have, ITK calls update on them in turn. See slide 5 of this <a href="www.cs.cmu.edu/~galeotti/methods_course/ITK_Pipeline.pdf">link</a>.</p>
 <hr>
 <h2 id="计算平均mesh作为参考mesh的代码"><a class="markdownIt-Anchor" href="#计算平均mesh作为参考mesh的代码"></a> 计算平均mesh作为参考mesh的代码</h2>
+<p>originalMeshes传入的是meshes的指针，也就是align也会影响meshes</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> itk::Mesh&lt;<span class="keyword">float</span>, Dimensions&gt; MeshType;</span><br><span class="line"><span class="comment">///////////////////////////////////////////////////////////////</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 将已经读入的mesh都拷贝过来，mesh为之前读入的文件</span></span><br><span class="line"><span class="built_in">vector</span>&lt;MeshType::Pointer&gt; originalMeshes;</span><br><span class="line"><span class="keyword">for</span> (MeshReaderList::iterator it = meshes.begin(); it != meshes.end();</span><br><span class="line">    ++it) </span><br><span class="line">&#123;</span><br><span class="line">  MeshReaderType::Pointer reader = *it;</span><br><span class="line">  originalMeshes.push_back(reader-&gt;GetOutput());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">unsigned</span> uMaxGPAIterations = <span class="number">20</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">unsigned</span> uNumberOfPoints = <span class="number">100</span>;  <span class="comment">// 最多使用这么多个点</span></span><br><span class="line"><span class="keyword">const</span> <span class="keyword">float</span> fBreakIfChangeBelow = <span class="number">0.001f</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> itk::VersorRigid3DTransform&lt;<span class="keyword">float</span>&gt; Rigid3DTransformType;</span><br><span class="line"><span class="keyword">typedef</span> itk::Image&lt;<span class="keyword">float</span>, Dimensions&gt; ImageType;</span><br><span class="line"><span class="keyword">typedef</span> itk::LandmarkBasedTransformInitializer&lt;Rigid3DTransformType,</span><br><span class="line">                                                   ImageType, ImageType&gt;</span><br><span class="line">    LandmarkBasedTransformInitializerType;</span><br><span class="line"><span class="keyword">typedef</span> itk::TransformMeshFilter&lt;MeshType, MeshType, Rigid3DTransformType&gt;</span><br><span class="line">    FilterType;</span><br><span class="line"><span class="comment">// 计算参考mesh</span></span><br><span class="line">MeshType::Pointer referenceMesh =</span><br><span class="line">    calculateProcrustesMeanMesh&lt;MeshType,</span><br><span class="line">                                LandmarkBasedTransformInitializerType,</span><br><span class="line">                                Rigid3DTransformType, FilterType&gt;(</span><br><span class="line">        originalMeshes, uMaxGPAIterations, uNumberOfPoints,</span><br><span class="line">        fBreakIfChangeBelow);</span><br><span class="line">representer-&gt;SetReference(referenceMesh);</span><br></pre></td></tr></table></figure>
 <h3 id="计算参考mesh的函数"><a class="markdownIt-Anchor" href="#计算参考mesh的函数"></a> 计算参考mesh的函数</h3>
 <p>计算流程：</p>
@@ -551,6 +564,7 @@ If you call Update() on filter3, ITK starts from filter3 and checks if the input
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> itk::Mesh&lt;<span class="keyword">float</span>, Dimensions&gt; MeshType;</span><br><span class="line"><span class="keyword">typedef</span> itk::DataManager&lt;MeshType&gt; DataManagerType;</span><br><span class="line">DataManagerType::Pointer dataManager = DataManagerType::New();</span><br><span class="line"><span class="comment">////////////////////////////////////////////////////////////////////</span></span><br><span class="line">dataManager-&gt;SetRepresenter(representer);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (MeshReaderList::const_iterator it = meshes.begin(); it != meshes.end();</span><br><span class="line">      ++it) &#123;</span><br><span class="line">  MeshReaderType::Pointer reader = *it;</span><br><span class="line">  dataManager-&gt;AddDataset(reader-&gt;GetOutput(), reader-&gt;GetFileName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <hr>
 <h2 id="进行pca并保存model"><a class="markdownIt-Anchor" href="#进行pca并保存model"></a> 进行PCA并保存model</h2>
+<p>这个PCA之前没有align的过程？？GPA会进行align，但是如果选择reference这里就没有进行align了？</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// model类型</span></span><br><span class="line"><span class="keyword">typedef</span> itk::StatisticalModel&lt;MeshType&gt; StatisticalModelType;</span><br><span class="line">StatisticalModelType::Pointer model;</span><br><span class="line"><span class="comment">// 利用itk接口进行PCA</span></span><br><span class="line"><span class="keyword">typedef</span> itk::PCAModelBuilder&lt;MeshType&gt; PCAModelBuilder;</span><br><span class="line">PCAModelBuilder::Pointer pcaModelBuilder = PCAModelBuilder::New();</span><br><span class="line"><span class="comment">// 直接就进行PCA了</span></span><br><span class="line">model = pcaModelBuilder-&gt;BuildNewModel(dataManager-&gt;GetData(),</span><br><span class="line">                                         opt.fNoiseVariance);</span><br><span class="line"><span class="comment">// 保存为文件</span></span><br><span class="line">itk::StatismoIO&lt;MeshType&gt;::SaveStatisticalModel(</span><br><span class="line">    model, opt.strOutputFileName.c_str());</span><br></pre></td></tr></table></figure>
 <script src="https://cdnjs.loli.net/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
 ed=>end: 退出
