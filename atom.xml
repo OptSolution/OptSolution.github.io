@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://optsolution.github.io/"/>
-  <updated>2018-12-02T11:00:44.357Z</updated>
+  <updated>2018-12-03T09:35:30.073Z</updated>
   <id>https://optsolution.github.io/</id>
   
   <author>
@@ -15,6 +15,30 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>statismo代码分析--statismo-build-deformation-model</title>
+    <link href="https://optsolution.github.io/2018/12/03/statismo-build-deformation-model/"/>
+    <id>https://optsolution.github.io/2018/12/03/statismo-build-deformation-model/</id>
+    <published>2018-12-03T09:28:00.000Z</published>
+    <updated>2018-12-03T09:35:30.073Z</updated>
+    
+    <content type="html"><![CDATA[<p>输入数据是形变场不是shape，对应的是reference mesh上每个点的形变方向，所以只需要输入数据对应，不需要align。但是最后得到的结果也是描述形变场的model，由这个model得到的形变场最后要加上reference mesh才能得到最后的shape。</p><a id="more"></a><div id="flowchart-0" class="flow-chart"></div><h2 id="命令行参数"><a class="markdownIt-Anchor" href="#命令行参数"></a> 命令行参数</h2><ul><li>-l, --data-list DATA_LIST ：指定一个文件路径，这个文件包含所有用来生成模型的形变场文件路径,每一行只写一个文件</li><li>-o, --output-file OUTPUT_FILE ：输出模型文件的路径</li><li>-n, --noise NOISE ：指定PPCA(probabilistic principal component analysis)模型的噪声方差，默认为0</li><li>-d, --dimensionality ：使用数据建立的模型维度，默认为3</li></ul><h2 id="代码"><a class="markdownIt-Anchor" href="#代码"></a> 代码</h2><p>代码详细解释请参考<a href="https://optsolution.github.io/2018/11/30/statismo-build-shape-model/">另一篇文章</a><script src="https://cdnjs.loli.net/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始ed=>end:  退出io1=>inputoutput: 输入命令行参数op1=>operation: 读取命令行参数cond1=>condition: 参数是否符合要求？io2=>inputoutput: 无法执行cond2=>condition: 是否为2维？(否为3维)op2=>operation: 设置为2维运算op3=>operation: 设置为3维运算op4=>operation: 读入数据,将第一帧数据设为referenceop5=>operation: 进行PCAio3=>inputoutput: 保存modelst->io1->op1->cond1cond1(no)->io2->edcond1(yes)->cond2cond2(yes, right)->op2->op4cond2(no)->op3->op4op4->op5->io3->ed</textarea><textarea id="flowchart-0-options" style="display: none">{"scale":1,"line-width":2,"line-length":50,"text-margin":10,"font-size":12}</textarea><script>  var code = document.getElementById("flowchart-0-code").value;  var options = JSON.parse(decodeURIComponent(document.getElementById("flowchart-0-options").value));  var diagram = flowchart.parse(code);  diagram.drawSVG("flowchart-0", options);</script></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;输入数据是形变场不是shape，对应的是reference mesh上每个点的形变方向，所以只需要输入数据对应，不需要align。但是最后得到的结果也是描述形变场的model，由这个model得到的形变场最后要加上reference mesh才能得到最后的shape。&lt;/p&gt;
+    
+    </summary>
+    
+    
+      <category term="statismo" scheme="https://optsolution.github.io/tags/statismo/"/>
+    
+      <category term="code" scheme="https://optsolution.github.io/tags/code/"/>
+    
+      <category term="SSM" scheme="https://optsolution.github.io/tags/SSM/"/>
+    
+  </entry>
   
   <entry>
     <title>statismo代码分析--statismo-build-shape-model</title>
