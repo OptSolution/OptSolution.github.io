@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.loli.net/css?family=Roboto Slab:300,300italic,400,400italic,700,700italic|Merienda:300,300italic,400,400italic,700,700italic|Ubuntu Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=6.5.0" color="#222">
+
+
+
+  <meta name="msapplication-config" content="/images/browserconfig.xml">
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"hide","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="使用高斯过程描述形变场，输入的数据只需要参考帧就行。需要设定kernel，由参考帧和kernel生成model">
+<meta name="keywords" content="statismo,code,SSM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="statismo代码分析--statismo-build-gp-model">
+<meta property="og:url" content="https://optsolution.github.io/2018/12/03/statismo-build-gp-model/index.html">
+<meta property="og:site_name" content="HyperPlane">
+<meta property="og:description" content="使用高斯过程描述形变场，输入的数据只需要参考帧就行。需要设定kernel，由参考帧和kernel生成model">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-12-03T13:24:30.520Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="statismo代码分析--statismo-build-gp-model">
+<meta name="twitter:description" content="使用高斯过程描述形变场，输入的数据只需要参考帧就行。需要设定kernel，由参考帧和kernel生成model">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="HyperPlane" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="https://optsolution.github.io/2018/12/03/statismo-build-gp-model/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>statismo代码分析--statismo-build-gp-model | HyperPlane</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">HyperPlane</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+<link rel="stylesheet" href="https://cdnjs.loli.net/ajax/libs/KaTeX/0.9.0/katex.min.css">
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://optsolution.github.io/2018/12/03/statismo-build-gp-model/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="OptSolution">
+      <meta itemprop="description" content="做每一件有意义的小事">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="HyperPlane">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">statismo代码分析--statismo-build-gp-model
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-03 21:22:12 / 修改时间：21:24:30" itemprop="dateCreated datePublished" datetime="2018-12-03T21:22:12+08:00">2018-12-03</time>
+            
+
+            
+              
+
+              
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/12/03/statismo-build-gp-model/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/12/03/statismo-build-gp-model/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>使用高斯过程描述形变场，输入的数据只需要参考帧就行。需要设定kernel，由参考帧和kernel生成model</p>
+<a id="more"></a>
+<div id="flowchart-0" class="flow-chart"></div>
+<h2 id="命令行参数"><a class="markdownIt-Anchor" href="#命令行参数"></a> 命令行参数</h2>
+<ul>
+<li>-t, --type TYPE :	指定模型是<strong>shape</strong>还是<strong>deformation</strong></li>
+<li>-d, --dimensionality : 输入数据的维度，当<em>TYPE</em>为<strong>deformation</strong>时有效</li>
+<li>-k, --kernel KERNEL :	指定高斯过程的kernel，默认只支持<strong>gaussian</strong></li>
+<li>-p, --parameters KERNEL_PARAMETERS : kernel的参数，<strong>gaussian</strong>只有一个sigma参数</li>
+<li>-s, --scale SCALE : 作用在kernel上的scaling参数</li>
+<li>-n, --numberofbasisfunctions NUMBER_OF_BASIS_FUNCTIONS : 这个model需要的参数个数</li>
+<li>-r, --reference REFERENCE_FILE : reference文件路径</li>
+<li>-o, --output-file OUTPUT_FILE : 输出文件路径</li>
+<li>-m, --input-model MODEL_FILE : 已有model的文件路径，用于扩展当前已有的model</li>
+</ul>
+<h2 id="kernel的代码"><a class="markdownIt-Anchor" href="#kernel的代码"></a> kernel的代码</h2>
+<p>在文件 <em>utils/statismo-build-gp-model-kernels.h</em> 中添加kernel，在这里kernel是对应的一对点计算得到的一个值，并非对应点的每个元素得到的每个一个对应向量</p>
+<h3 id="截取guassian-kernel代码"><a class="markdownIt-Anchor" href="#截取guassian-kernel代码"></a> 截取guassian kernel代码</h3>
+<p>在对应的头文件中定义类似的模板类，内联重载运算符()设定具体的kernel函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用法，opt.vKernelParameters指定kernel类型</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">typename</span> DataType::PointType PointType;</span><br><span class="line"><span class="keyword">typedef</span> boost::scoped_ptr&lt;<span class="keyword">const</span> statismo::ScalarValuedKernel&lt;PointType&gt;&gt;</span><br><span class="line">    MatrixPointerType;</span><br><span class="line">  MatrixPointerType pKernel;</span><br><span class="line"><span class="keyword">if</span> (isShapeModel == <span class="literal">true</span>) &#123;</span><br><span class="line">  pKernel.reset((statismo::ScalarValuedKernel&lt;PointType&gt; *)</span><br><span class="line">                      it-&gt;second.createKernelShape(opt.vKernelParameters));</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (Dimenstionality == Dimensionality2D) &#123;</span><br><span class="line">    pKernel.reset((statismo::ScalarValuedKernel&lt;PointType&gt; *)it-&gt;second</span><br><span class="line">                      .createKernel2DDeformation(opt.vKernelParameters));</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    pKernel.reset((statismo::ScalarValuedKernel&lt;PointType&gt; *)it-&gt;second</span><br><span class="line">                      .createKernel3DDeformation(opt.vKernelParameters));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//////////////////////////////////////////////////////////////////////////</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">TPoint</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">GaussianKernel</span> :</span> <span class="keyword">public</span> statismo::ScalarValuedKernel&lt;TPoint&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="comment">// 这两个必须要有，并且不能边</span></span><br><span class="line">  <span class="keyword">typedef</span> <span class="keyword">typename</span> TPoint::CoordRepType CoordRepType;</span><br><span class="line">  <span class="keyword">typedef</span> vnl_vector&lt;CoordRepType&gt; VectorType;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 只有一个参数sigma</span></span><br><span class="line">  GaussianKernel(<span class="keyword">double</span> sigma)</span><br><span class="line">      : m_sigma(sigma), m_sigma2(<span class="number">-1.0</span> / (sigma * sigma)) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 内联重载操作符()，定义kernel计算</span></span><br><span class="line">  <span class="comment">// kernel是一个二元函数，返回kernel函数值</span></span><br><span class="line">  <span class="function"><span class="keyword">inline</span> <span class="keyword">double</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> TPoint &amp;x, <span class="keyword">const</span> TPoint &amp;y)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    VectorType xv = x.GetVnlVector();</span><br><span class="line">    VectorType yv = y.GetVnlVector();</span><br><span class="line"></span><br><span class="line">    VectorType r = yv - xv;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">exp</span>((<span class="keyword">double</span>)dot_product(r, r) * m_sigma2);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">GetKernelInfo</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">ostringstream</span> os;</span><br><span class="line">    os &lt;&lt; <span class="string">"GaussianKernel("</span> &lt;&lt; m_sigma &lt;&lt; <span class="string">")"</span>;</span><br><span class="line">    <span class="keyword">return</span> os.str();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">double</span> m_sigma;</span><br><span class="line">  <span class="keyword">double</span> m_sigma2;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="融合kernel"><a class="markdownIt-Anchor" href="#融合kernel"></a> 融合kernel</h3>
+<p>代码在文件<em>KernelCombinators.h</em>中，详细内容请在文件中具体查阅，这里简单说明一下<br>
+如果读取已有model，则需要读取model的kernel，并与当前设置的kernel融合，这个程序就是简单的求和<br>
+<strong>kernel的求和</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用法</span></span><br><span class="line">pModelBuildingKernel.reset(<span class="keyword">new</span> statismo::SumKernel&lt;PointType&gt;(</span><br><span class="line">          pStatModelKernel.get(), pScaledKernel.get()));</span><br><span class="line"><span class="comment">/////////////////////////////////////////////////////////////////////////////////</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A (matrix valued) kernel, which represents the sum of two matrix valued</span></span><br><span class="line"><span class="comment"> * kernels.</span></span><br><span class="line"><span class="comment"> * 这个代码就是简单的将kernel求和，也是这个程序使用的</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">TPoint</span>&gt; <span class="title">class</span> <span class="title">SumKernel</span> :</span> <span class="keyword">public</span> MatrixValuedKernel&lt;TPoint&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> MatrixValuedKernel&lt;TPoint&gt; MatrixValuedKernelType;</span><br><span class="line"></span><br><span class="line">  SumKernel(<span class="keyword">const</span> MatrixValuedKernelType *lhs,</span><br><span class="line">            <span class="keyword">const</span> MatrixValuedKernelType *rhs)</span><br><span class="line">      : MatrixValuedKernelType(lhs-&gt;GetDimension()), m_lhs(lhs), m_rhs(rhs) &#123;</span><br><span class="line">    <span class="keyword">if</span> (lhs-&gt;GetDimension() != rhs-&gt;GetDimension()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> StatisticalModelException(</span><br><span class="line">          <span class="string">"Kernels in SumKernel must have the same dimensionality"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 这里求和</span></span><br><span class="line">  <span class="function">MatrixType <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> TPoint &amp;x, <span class="keyword">const</span> TPoint &amp;y)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (*m_lhs)(x, y) + (*m_rhs)(x, y);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">GetKernelInfo</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">ostringstream</span> os;</span><br><span class="line">    os &lt;&lt; m_lhs-&gt;GetKernelInfo() &lt;&lt; <span class="string">" + "</span> &lt;&lt; m_rhs-&gt;GetKernelInfo();</span><br><span class="line">    <span class="keyword">return</span> os.str();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">const</span> MatrixValuedKernelType *m_lhs;</span><br><span class="line">  <span class="keyword">const</span> MatrixValuedKernelType *m_rhs;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>kernel相乘</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A (matrix valued) kernel, which represents the product of two matrix valued</span></span><br><span class="line"><span class="comment"> * kernels.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">TPoint</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">ProductKernel</span> :</span> <span class="keyword">public</span> MatrixValuedKernel&lt;TPoint&gt; &#123;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> MatrixValuedKernel&lt;TPoint&gt; MatrixValuedKernelType;</span><br><span class="line"></span><br><span class="line">  ProductKernel(<span class="keyword">const</span> MatrixValuedKernelType *lhs,</span><br><span class="line">                <span class="keyword">const</span> MatrixValuedKernelType *rhs)</span><br><span class="line">      : MatrixValuedKernelType(lhs-&gt;GetDimension()), m_lhs(lhs), m_rhs(rhs) &#123;</span><br><span class="line">    <span class="keyword">if</span> (lhs-&gt;GetDimension() != rhs-&gt;GetDimension()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> StatisticalModelException(</span><br><span class="line">          <span class="string">"Kernels in SumKernel must have the same dimensionality"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 将kernel逐元素相乘</span></span><br><span class="line">  <span class="function">MatrixType <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> TPoint &amp;x, <span class="keyword">const</span> TPoint &amp;y)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (*m_lhs)(x, y) * (*m_rhs)(x, y);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">GetKernelInfo</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">ostringstream</span> os;</span><br><span class="line">    os &lt;&lt; m_lhs-&gt;GetKernelInfo() &lt;&lt; <span class="string">" * "</span> &lt;&lt; m_rhs-&gt;GetKernelInfo();</span><br><span class="line">    <span class="keyword">return</span> os.str();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">const</span> MatrixValuedKernelType *m_lhs;</span><br><span class="line">  <span class="keyword">const</span> MatrixValuedKernelType *m_rhs;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="设定kernel"><a class="markdownIt-Anchor" href="#设定kernel"></a> 设定kernel</h3>
+<p>kernel可以单独设置也可以将多个kernel融合设置，上面贴出了单个kernel设定的模板和kernel融合的模板，这里贴一下其他的设定</p>
+<p><strong>根据维度设定kernel的每个分块</strong><br>
+因为kernel计算出来的值是一个常数，所以需要修正其维度</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Takes a scalar valued kernel and creates a matrix valued kernel of the given</span></span><br><span class="line"><span class="comment"> * dimension. The new kernel models the output components as independent, i.e.</span></span><br><span class="line"><span class="comment"> * if K(x,y) is a scalar valued Kernel, the matrix valued kernel becomes</span></span><br><span class="line"><span class="comment"> * Id*K(x,y), where Id is an identity matrix of dimensionality d.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">TPoint</span>&gt;</span></span><br><span class="line"><span class="class"><span class="title">class</span> <span class="title">UncorrelatedMatrixValuedKernel</span> :</span> <span class="keyword">public</span> MatrixValuedKernel&lt;TPoint&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> MatrixValuedKernel&lt;TPoint&gt; MatrixValuedKernelType;</span><br><span class="line"></span><br><span class="line">  UncorrelatedMatrixValuedKernel(<span class="keyword">const</span> ScalarValuedKernel&lt;TPoint&gt; *scalarKernel,</span><br><span class="line">                                 <span class="keyword">unsigned</span> dimension)</span><br><span class="line">      : MatrixValuedKernelType(dimension), m_kernel(scalarKernel),</span><br><span class="line">        m_ident(MatrixType::Identity(dimension, dimension)) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// m_ident是根据维度生成的单位矩阵</span></span><br><span class="line">  <span class="function">MatrixType <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> TPoint &amp;x, <span class="keyword">const</span> TPoint &amp;y)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> m_ident * (*m_kernel)(x, y);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">virtual</span> ~UncorrelatedMatrixValuedKernel() &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">GetKernelInfo</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">ostringstream</span> os;</span><br><span class="line">    os &lt;&lt; <span class="string">"UncorrelatedMatrixValuedKernel("</span> &lt;&lt; (*m_kernel).GetKernelInfo()</span><br><span class="line">       &lt;&lt; <span class="string">", "</span> &lt;&lt; <span class="keyword">this</span>-&gt;m_dimension &lt;&lt; <span class="string">")"</span>;</span><br><span class="line">    <span class="keyword">return</span> os.str();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">const</span> ScalarValuedKernel&lt;TPoint&gt; *m_kernel;</span><br><span class="line">  MatrixType m_ident;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>设定kernel的尺度</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * A (matrix valued) kernel, which represents a scalar multiple of a matrix</span></span><br><span class="line"><span class="comment"> * valued kernel.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="class"><span class="keyword">class</span> <span class="title">TPoint</span>&gt; <span class="title">class</span> <span class="title">ScaledKernel</span> :</span> <span class="keyword">public</span> MatrixValuedKernel&lt;TPoint&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> MatrixValuedKernel&lt;TPoint&gt; MatrixValuedKernelType;</span><br><span class="line"></span><br><span class="line">  ScaledKernel(<span class="keyword">const</span> MatrixValuedKernelType *kernel, <span class="keyword">double</span> scalingFactor)</span><br><span class="line">      : MatrixValuedKernelType(kernel-&gt;GetDimension()), m_kernel(kernel),</span><br><span class="line">        m_scalingFactor(scalingFactor) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 设定kernel的洗漱</span></span><br><span class="line">  <span class="function">MatrixType <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="keyword">const</span> TPoint &amp;x, <span class="keyword">const</span> TPoint &amp;y)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (*m_kernel)(x, y) * m_scalingFactor;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">std</span>::<span class="function"><span class="built_in">string</span> <span class="title">GetKernelInfo</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">ostringstream</span> os;</span><br><span class="line">    os &lt;&lt; (*m_kernel).GetKernelInfo() &lt;&lt; <span class="string">" * "</span> &lt;&lt; m_scalingFactor;</span><br><span class="line">    <span class="keyword">return</span> os.str();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">const</span> MatrixValuedKernelType *m_kernel;</span><br><span class="line">  <span class="keyword">double</span> m_scalingFactor;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="使用lowrankgp构建model"><a class="markdownIt-Anchor" href="#使用lowrankgp构建model"></a> 使用LowRankGP构建model</h2>
+<p>这个程序只需要reference和kernel就可以了，PCA的方法需要读取很多数据</p>
+<p>根据kernel生成model，平均值为根据reference维度得到的0向量</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> itk::LowRankGPModelBuilder&lt;DataType&gt; ModelBuilderType;</span><br><span class="line"><span class="keyword">typename</span> ModelBuilderType::Pointer gpModelBuilder = ModelBuilderType::New();</span><br><span class="line">gpModelBuilder-&gt;SetRepresenter(pRepresenter);</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> itk::StatisticalModel&lt;DataType&gt; StatisticalModelType;</span><br><span class="line"><span class="keyword">typename</span> StatisticalModelType::Pointer pModel;</span><br><span class="line">pModel = gpModelBuilder-&gt;BuildNewModel(pMean, *pModelBuildingKernel.get(),</span><br><span class="line">                                      opt.iNrOfBasisFunctions);</span><br></pre></td></tr></table></figure>
+<p>相关的数学推导有时间再进行<script src="https://cdnjs.loli.net/ajax/libs/raphael/2.2.7/raphael.min.js"></script><script src="https://cdnjs.loli.net/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script><textarea id="flowchart-0-code" style="display: none">st=>start: 开始
+ed=>end:  退出
+io1=>inputoutput: 输入命令行参数
+op1=>operation: 读取命令行参数
+cond1=>condition: 参数是否
+符合要求？
+io2=>inputoutput: 无法执行
+cond2=>condition: 数据是否为shape
+(否为defomation)
+cond3=>condition: 数据是否为2
+维(否为3维)
+op2=>operation: 设置为shape模式
+op3=>operation: 设置为deformation
+的3维模式
+op4=>operation: 设置为deformation
+的2维模式
+op5=>operation: 根据数据形式
+设置kernel
+cond4=>condition: 是否读取了
+已有model
+op6=>operation: 已有model的kernel和
+现有model的kernel融合
+io3=>inputoutput: 读入并设置参考帧
+op7=>operation: 使用LowRankGP
+构建model
+io4=>inputoutput: 保存model
+
+st->io1->op1->cond1
+cond1(no)->io2->ed
+cond1(yes)->cond2
+cond2(yes)->op2->op5
+cond2(no)->cond3
+cond3(no)->op3->op5
+cond3(yes)->op4->op5
+op5->cond4
+cond4(yes,right)->op6->op7
+cond4(no)->io3->op7
+op7->io4->ed</textarea><textarea id="flowchart-0-options" style="display: none">{"scale":1,"line-width":2,"line-length":50,"text-margin":10,"font-size":12}</textarea><script>  var code = document.getElementById("flowchart-0-code").value;  var options = JSON.parse(decodeURIComponent(document.getElementById("flowchart-0-options").value));  var diagram = flowchart.parse(code);  diagram.drawSVG("flowchart-0", options);</script></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+       
+    
+    
+
+    
+      <div>
+        
+
+
+
+  
+
+
+
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>OptSolution</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    
+    <a href="https://optsolution.github.io/2018/12/03/statismo-build-gp-model/" title="statismo代码分析--statismo-build-gp-model">https://optsolution.github.io/2018/12/03/statismo-build-gp-model/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/statismo/" rel="tag"># statismo</a>
+          
+            <a href="/tags/code/" rel="tag"># code</a>
+          
+            <a href="/tags/SSM/" rel="tag"># SSM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/03/statismo-build-deformation-model/" rel="next" title="statismo代码分析--statismo-build-deformation-model">
+                <i class="fa fa-chevron-left"></i> statismo代码分析--statismo-build-deformation-model
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="OptSolution">
+            
+              <p class="site-author-name" itemprop="name">OptSolution</p>
+              <p class="site-description motion-element" itemprop="description">做每一件有意义的小事</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">7</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:mr_cwang@foxmail.com" title="E-Mail &rarr; mailto:mr_cwang@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+            </div>
+          
+
+          
+             <div class="cc-license motion-element" itemprop="license">
+              
+                
+              
+              
+              
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+             </div>
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#命令行参数"><span class="nav-number">1.</span> <span class="nav-text"> 命令行参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kernel的代码"><span class="nav-number">2.</span> <span class="nav-text"> kernel的代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#截取guassian-kernel代码"><span class="nav-number">2.1.</span> <span class="nav-text"> 截取guassian kernel代码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#融合kernel"><span class="nav-number">2.2.</span> <span class="nav-text"> 融合kernel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设定kernel"><span class="nav-number">2.3.</span> <span class="nav-text"> 设定kernel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用lowrankgp构建model"><span class="nav-number">3.</span> <span class="nav-text"> 使用LowRankGP构建model</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">OptSolution</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: true,
+        notify: true,
+        appId: 'FVcQ51UyXYTC10gnPNa8ayTO-gzGzoHsz',
+        appKey: 'ESQk01IsKyhcc4svapPEpzuu',
+        placeholder: '来啊，快活啊～（无须登录即可发言）',
+        avatar:'identicon',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  <link rel="stylesheet" href="/dist/APlayer.min.css">
+  <div id="aplayer"></div>
+  <script type="text/javascript" src="/dist/APlayer.min.js"></script>
+  <script type="text/javascript" src="/dist/music.js"></script>
+</body>
+</html>
