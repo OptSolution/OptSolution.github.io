@@ -476,16 +476,6 @@
 
           
             
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/11/29/BA/#comments" itemprop="discussionUrl">
-                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/11/29/BA/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
           
 
           
@@ -812,8 +802,7 @@
           
 
   
-    <div class="comments" id="comments">
-    </div>
+    <div id="gitalk-container"></div>
   
 
 
@@ -1136,31 +1125,23 @@
 
 
 
-  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
-  
-  
-  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
-  
-  <script type="text/javascript">
-    var GUEST = ['nick','mail','link'];
-    var guest = 'nick,mail,link';
-    guest = guest.split(',').filter(function (item) {
-      return GUEST.indexOf(item)>-1;
-    });
-    new Valine({
-        el: '#comments' ,
-        verify: true,
-        notify: true,
-        appId: 'FVcQ51UyXYTC10gnPNa8ayTO-gzGzoHsz',
-        appKey: 'ESQk01IsKyhcc4svapPEpzuu',
-        placeholder: '来啊，快活啊～（无须登录即可发言）',
-        avatar:'identicon',
-        meta:guest,
-        pageSize:'10' || 10,
-        visitor: false
-    });
-  </script>
 
+
+  <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+  <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+  <script src="/js/src/md5.min.js"></script>
+   <script type="text/javascript">
+        var gitalk = new Gitalk({
+          clientID: '987a1c65d0da11fba55f',
+          clientSecret: '540d011a80a8f1758eb15c63b2f23ca332012295',
+          repo: 'OptSolution.github.io',
+          owner: 'OptSolution',
+          admin: ['OptSolution'],
+          id: md5(location.pathname),
+          distractionFreeMode: 'true'
+        })
+        gitalk.render('gitalk-container')           
+       </script>
 
 
   
