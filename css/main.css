@@ -1860,7 +1860,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #abffc4;
+  background: #69ffff;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2864,7 +2864,7 @@ hr {
   }
 }
 body {
-  background: url("https://api.dujin.org/bing/1920.php");
+  background: url("https://api.i-meto.com/bing");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
