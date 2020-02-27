@@ -1860,7 +1860,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #fcff69;
+  background: #70dd75;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2864,7 +2864,7 @@ hr {
   }
 }
 body {
-  background: url("https://api.i-meto.com/bing");
+  background: url("https://source.unsplash.com/random/1600x900");
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
