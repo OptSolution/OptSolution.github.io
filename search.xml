@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[从几何的角度理解线性系统的解]]></title>
+    <url>%2Farchives%2F55560.html</url>
+    <content type="text"><![CDATA[继续填之前线性代数的坑，这一讲开始有点意思了，希望讲清楚了]]></content>
+      <tags>
+        <tag>math</tag>
+        <tag>linear algorithm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[为什么学习线性代数]]></title>
     <url>%2Farchives%2F61424.html</url>
     <content type="text"><![CDATA[懒得打字了，干脆直接讲吧 为之前线性代数填坑系列]]></content>
